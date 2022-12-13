@@ -1,7 +1,6 @@
 import 'dart:convert';
 
 import '../../flutter_flow/flutter_flow_util.dart';
-
 import 'api_manager.dart';
 
 export 'api_manager.dart' show ApiCallResponse;
@@ -24,6 +23,7 @@ class AuthLoginByEmailCall {
       params: {
         'username': username,
         'password': password,
+        'scope': 'me_profile,orders:list',
       },
       bodyType: BodyType.X_WWW_FORM_URL_ENCODED,
       returnBody: true,

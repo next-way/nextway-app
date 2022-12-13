@@ -231,7 +231,7 @@ packages:
       name: equatable
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "2.0.3"
+    version: "2.0.5"
   fake_async:
     dependency: transitive
     description:
@@ -497,6 +497,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.0.0"
+  nextway_api:
+    dependency: transitive
+    description:
+      path: "packages/nextway_api"
+      relative: true
+    source: path
+    version: "0.0.1"
   octo_image:
     dependency: transitive
     description:
@@ -504,6 +511,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.0.2"
+  order_repository:
+    dependency: "direct main"
+    description:
+      path: "packages/order_repository"
+      relative: true
+    source: path
+    version: "0.0.1"
   package_config:
     dependency: transitive
     description:
@@ -972,5 +986,5 @@ packages:
     source: hosted
     version: "3.1.1"
 sdks:
-  dart: ">=2.18.0 <3.0.0"
+  dart: ">=2.18.5 <3.0.0"
   flutter: ">=3.3.0"
