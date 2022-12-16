@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:nextway/app.dart';
 import 'package:provider/provider.dart';
 
 import '../backend/api_requests/api_calls.dart';
 import '../flutter_flow/flutter_flow_theme.dart';
 import '../flutter_flow/flutter_flow_util.dart';
 import '../flutter_flow/flutter_flow_widgets.dart';
-import '../main.dart';
 
 class LoginWidget extends StatefulWidget {
   const LoginWidget({Key? key}) : super(key: key);

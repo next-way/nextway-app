@@ -14,7 +14,7 @@ class AuthLoginByEmailCall {
   }) {
     return ApiManager.instance.makeApiCall(
       callName: 'Auth Login by Email',
-      apiUrl: 'https://api-stage42.next-way.org/token',
+      apiUrl: 'https://api-stage42.next-way.org/token', // Override by flavour
       callType: ApiCallType.POST,
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
@@ -23,7 +23,7 @@ class AuthLoginByEmailCall {
       params: {
         'username': username,
         'password': password,
-        'scope': 'me_profile,orders:list',
+        'scope': 'me_profile orders:list',
       },
       bodyType: BodyType.X_WWW_FORM_URL_ENCODED,
       returnBody: true,

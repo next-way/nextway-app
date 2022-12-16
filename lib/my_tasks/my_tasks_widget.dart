@@ -1,7 +1,9 @@
 // import '../auth/auth_util.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_flavor/flutter_flavor.dart';
 import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
+import 'package:nextway/api_config.dart';
 import 'package:nextway/my_tasks/paged_orders_list_view.dart';
 import 'package:nextway/preferences/list_preferences.dart';
 import 'package:nextway/repository.dart';
@@ -50,9 +52,22 @@ class _MyTasksWidgetState extends State<MyTasksWidget>
   ListPreferences _listPreferences = ListPreferences();
 
   final scaffoldKey = GlobalKey<ScaffoldState>();
+  late Repository repository;
 
   @override
   void initState() {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      Map apiConfig = await getApiConfig();
+      setState(() {
+        repository = Repository(FlavorConfig.instance.variables);
+      });
+      // getApiConfig().then((apiConfig) {
+      //   setState(() {
+      //     repository = Repository(apiConfig);
+      //   });
+      //   // this.repository = Repository(apiConfig);
+      // });
+    });
     super.initState();
     setupAnimations(
       animationsMap.values.where((anim) =>
@@ -152,7 +167,7 @@ class _MyTasksWidgetState extends State<MyTasksWidget>
               child: Padding(
                   padding: EdgeInsetsDirectional.fromSTEB(0, 8, 0, 0),
                   child: PagedOrdersListView(
-                    repository: Repository(), // TODO Get this from provider
+                    repository: repository, // TODO Get this from provider
                     listPreferences: _listPreferences,
                   )
 
@@ -366,4 +381,6 @@ class _MyTasksWidgetState extends State<MyTasksWidget>
       ),
     );
   }
+
+  ensureRepositoryInit() {}
 }

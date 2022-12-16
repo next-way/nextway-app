@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "398223644495",
+    "project_id": "nextway-app",
+    "storage_bucket": "nextway-app.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:398223644495:android:875ff86d7e1fb0bba9d73a",
+        "android_client_info": {
+          "package_name": "org.nextway.app.dev"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "398223644495-1pjphl77n0c6akpe3n3fvpksqmegcdat.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "org.nextway.app.dev",
+            "certificate_hash": "eaec06a6628782b89ab3e63f3074701ed4274fc4"
+          }
+        },
+        {
+          "client_id": "398223644495-kcu29jpn072p4gurlcl79msr02ar7v48.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD1ZO61uNU34JQT_r026Kc-_4KQcBhYNbg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "398223644495-kcu29jpn072p4gurlcl79msr02ar7v48.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

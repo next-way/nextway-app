@@ -21,3 +21,22 @@ Order _$OrderFromJson(Map<String, dynamic> json) => $checkedCreate(
       },
       fieldKeyMap: const {'displayName': 'display_name'},
     );
+
+OrderResponse _$OrderResponseFromJson(Map<String, dynamic> json) =>
+    $checkedCreate(
+      'OrderResponse',
+      json,
+      ($checkedConvert) {
+        final val = OrderResponse(
+          items: $checkedConvert(
+              'items',
+              (v) => (v as List<dynamic>)
+                  .map((e) => Order.fromJson(e as Map<String, dynamic>))
+                  .toList()),
+          total: $checkedConvert('total', (v) => v as int),
+          page: $checkedConvert('page', (v) => v as int),
+          size: $checkedConvert('size', (v) => v as int),
+        );
+        return val;
+      },
+    );

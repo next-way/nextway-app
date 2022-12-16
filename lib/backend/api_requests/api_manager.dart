@@ -1,9 +1,10 @@
 import 'dart:convert';
-import 'dart:io';
 import 'dart:core';
+import 'dart:io';
 
-import 'package:http/http.dart' as http;
 import 'package:equatable/equatable.dart';
+import 'package:flutter_flavor/flutter_flavor.dart';
+import 'package:http/http.dart' as http;
 
 enum ApiCallType {
   GET,
@@ -180,6 +181,19 @@ class ApiManager {
     if (_accessToken != null) {
       headers[HttpHeaders.authorizationHeader] = 'Token $_accessToken';
     }
+    // Map apiConfig = await getApiConfig();
+    // final settings = await getFlavorSettings();
+
+    // Use local host for local testing
+    // if (apiConfig["api_env"] == "dev") {
+    //   apiUrl = apiUrl.replaceAll("https://api-stage42.next-way.org",
+    //       'http://' + apiConfig["api_host"]);
+    // }
+    apiUrl = FlavorConfig.instance.variables["apiTokenUrl"];
+    if (FlavorConfig.instance.variables["flavorId"] == 'development') {
+      apiUrl = 'http://$apiUrl';
+    }
+
     if (!apiUrl.startsWith('http')) {
       apiUrl = 'https://$apiUrl';
     }

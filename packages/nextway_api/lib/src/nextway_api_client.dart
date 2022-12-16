@@ -17,11 +17,12 @@ class OrderRequestFailure implements Exception {}
 /// {@endtemplate}
 class NextwayApiClient {
   /// {@macro nextway_api_client}
-  NextwayApiClient({http.Client? httpClient})
+  NextwayApiClient(this.apiConfig, {http.Client? httpClient})
       : _httpClient = httpClient ?? http.Client();
 
   static const _baseUrl = 'api-stage42.next-way.org';
 
+  late Map apiConfig;
   final http.Client _httpClient;
   late SharedPreferences prefs;
   String _accessToken = '';
@@ -36,11 +37,33 @@ class NextwayApiClient {
     return prefs.getString('ff_accessToken') ?? _accessToken;
   }
 
+  String getBaseUrl() {
+    return apiConfig["apiBaseUrl"] ?? _baseUrl;
+  }
+
   /// Finds a set of [Order] `/orders/?state={query}`
-  Stream<List<Order>> orderSearch(String query) async* {
+  Stream<OrderResponse> orderSearch(String query,
+      {int size = 10, int page = 1}) async* {
     var accessToken = await getAccessToken();
-    final request = Uri.https(_baseUrl, '/orders',
-        {'state': 'assigned,unassigned,waiting,confirmed,done,cancelled'}
+    String baseUrl = getBaseUrl();
+
+    // When making HTTPS call to HTTP endpoint, this happens https://stackoverflow.com/a/64422336
+    // Server side: WARNING:  Invalid HTTP request received.
+    final makeRequest =
+        this.apiConfig["flavorId"] == "development" ? Uri.http : Uri.https;
+
+    final request = makeRequest(baseUrl, '/orders/', {
+      'state': [
+        'assigned',
+        'unassigned',
+        'waiting',
+        'confirmed',
+        'done',
+        'cancelled'
+      ],
+      'size': size.toString(),
+      'page': page.toString(),
+    }
         // TODO Count, pagination?
         );
 
@@ -53,11 +76,13 @@ class NextwayApiClient {
 
     final ordersJson = jsonDecode(response.body);
 
-    List<Order> orders =
-        List<Order>.from(ordersJson.map((model) => Order.fromJson(model)));
-    // for (final order in orders) {
-    //   yield order;
-    // }
-    yield* Stream.value(orders);
+    // List<Order> orders = List<Order>.from(
+    //     ordersJson["items"].map<Order>((model) => Order.fromJson(model)));
+    // // for (final order in orders) {
+    // //   yield order;
+    // // }
+    OrderResponse orderResponse = OrderResponse.fromJson(ordersJson);
+
+    yield* Stream.value(orderResponse);
   }
 }

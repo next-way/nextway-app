@@ -13,6 +13,12 @@ flutter pub get
 flutter packages pub run build_runner build --delete-conflicting-outputs
 ```
 
+## Environment variables
+
+When running locally, it sometimes useful to test API connections on a local setup.
+
+- **API_ENV** Determines whether to load `api_env.dev.yaml` if the value is "dev" (default). Otherwise, only `api_env.yaml` is loaded.
+
 This command creates the generated files that parse each Record from Firestore into a schema object.
 
 ### Getting started continued:

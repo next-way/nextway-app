@@ -37,3 +37,21 @@ class Order {
   final String displayName;
   final String state;
 }
+
+@JsonSerializable()
+class OrderResponse {
+  final List<Order> items;
+  final int total;
+  final int page;
+  final int size;
+
+  const OrderResponse({
+    required this.items,
+    required this.total,
+    required this.page,
+    required this.size,
+  });
+
+  factory OrderResponse.fromJson(Map<String, dynamic> json) =>
+      _$OrderResponseFromJson(json);
+}

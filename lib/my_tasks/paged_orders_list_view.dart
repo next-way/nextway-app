@@ -38,7 +38,7 @@ class _PagedOrdersListViewState extends State<PagedOrdersListView> {
     try {
       final newPage = await widget.repository.getOrders(
         number: pageKey,
-        size: 8,
+        size: 10,
         // 1
         // filteredPlatformIds: _listPreferences?.filteredPlatformIds,
         // filteredDifficulties: _listPreferences?.filteredDifficulties,
