@@ -52,15 +52,24 @@ class NextwayApiClient {
     final makeRequest =
         this.apiConfig["flavorId"] == "development" ? Uri.http : Uri.https;
 
+    // If query is provided
+    List<String> states = [
+      'assigned',
+      'unassigned',
+      'waiting',
+      'confirmed',
+      'done',
+      'cancelled'
+    ];
+    if (query.isNotEmpty) {
+      if (query == "scheduled") {
+        states = ['assigned'];
+      } else if (query == 'unassigned') {
+        states = ['unassigned', 'waiting'];
+      }
+    }
     final request = makeRequest(baseUrl, '/orders/', {
-      'state': [
-        'assigned',
-        'unassigned',
-        'waiting',
-        'confirmed',
-        'done',
-        'cancelled'
-      ],
+      'state': states,
       'size': size.toString(),
       'page': page.toString(),
     }

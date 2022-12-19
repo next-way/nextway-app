@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:nextway/list_page.dart';
+import 'package:nextway/preferences/list_preferences.dart';
 import 'package:order_repository/order_repository.dart';
 
 class Repository {
@@ -15,8 +16,15 @@ class Repository {
   Future<ListPage<Order>> getOrders({
     int number = 1,
     int size = 10,
+    OrderGroupState? filteredState,
   }) async {
-    final results = _apiRepository.orderSearch("", size: size, page: number);
+    Map<OrderGroupState, String> stateToString = {
+      OrderGroupState.all: 'all',
+      OrderGroupState.scheduled: 'scheduled',
+      OrderGroupState.unassigned: 'unassigned',
+    };
+    final results = _apiRepository.orderSearch(stateToString[filteredState]!,
+        size: size, page: number);
     List<Order> orderList = [];
     int grandTotalCount = 0;
     final Completer<dynamic> c = new Completer<dynamic>();

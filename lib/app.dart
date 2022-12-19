@@ -96,7 +96,7 @@ class _NavBarPageState extends State<NavBarPage> {
   Widget build(BuildContext context) {
     final tabs = {
       'myTasks': MyTasksWidget(),
-      'CompletedTasks': CompletedTasksWidget(),
+      // 'CompletedTasks': CompletedTasksWidget(),
       'MyProfile': MyProfileWidget(),
     };
     final currentIndex = tabs.keys.toList().indexOf(_currentPageName);
@@ -127,18 +127,18 @@ class _NavBarPageState extends State<NavBarPage> {
             label: '--',
             tooltip: '',
           ),
-          BottomNavigationBarItem(
-            icon: Icon(
-              Icons.alarm_on,
-              size: 32,
-            ),
-            activeIcon: Icon(
-              Icons.alarm_on,
-              size: 32,
-            ),
-            label: '--',
-            tooltip: '',
-          ),
+          // BottomNavigationBarItem(
+          //   icon: Icon(
+          //     Icons.alarm_on,
+          //     size: 32,
+          //   ),
+          //   activeIcon: Icon(
+          //     Icons.alarm_on,
+          //     size: 32,
+          //   ),
+          //   label: '--',
+          //   tooltip: '',
+          // ),
           BottomNavigationBarItem(
             icon: Icon(
               Icons.person_outline,

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
+import 'package:nextway/my_tasks/order_list_item.dart';
 import 'package:nextway/preferences/list_preferences.dart';
 import 'package:nextway/repository.dart';
 import 'package:order_repository/order_repository.dart';
@@ -37,14 +38,15 @@ class _PagedOrdersListViewState extends State<PagedOrdersListView> {
   Future<void> _fetchPage(int pageKey) async {
     try {
       final newPage = await widget.repository.getOrders(
-        number: pageKey,
-        size: 10,
-        // 1
-        // filteredPlatformIds: _listPreferences?.filteredPlatformIds,
-        // filteredDifficulties: _listPreferences?.filteredDifficulties,
-        // filteredCategoryIds: _listPreferences?.filteredCategoryIds,
-        // sortMethod: _listPreferences?.sortMethod,
-      );
+          number: pageKey,
+          size: 10,
+          filteredState: _listPreferences.filteredState
+          // 1
+          // filteredPlatformIds: _listPreferences?.filteredPlatformIds,
+          // filteredDifficulties: _listPreferences?.filteredDifficulties,
+          // filteredCategoryIds: _listPreferences?.filteredCategoryIds,
+          // sortMethod: _listPreferences?.sortMethod,
+          );
 
       final previouslyFetchedItemsCount =
           // 2
@@ -73,6 +75,16 @@ class _PagedOrdersListViewState extends State<PagedOrdersListView> {
   }
 
   @override
+  void didUpdateWidget(PagedOrdersListView oldWidget) {
+    /// @TODO As parent widget gets rebuilt, this statement is always true
+    /// There is no diff between oldWidget and widget, and is not recycled either.
+    // if (oldWidget.listPreferences != widget.listPreferences) {
+    // }
+    _pagingController.refresh();
+    super.didUpdateWidget(oldWidget);
+  }
+
+  @override
   Widget build(BuildContext context) => RefreshIndicator(
         onRefresh: () => Future.sync(
           () => _pagingController.refresh(),
@@ -95,22 +107,4 @@ class _PagedOrdersListViewState extends State<PagedOrdersListView> {
           ),
         ),
       );
-}
-
-class OrderListItem extends StatelessWidget {
-  final Order order;
-
-  const OrderListItem({
-    required this.order,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      child: InkWell(
-          child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Text(order.displayName))),
-    );
-  }
 }
