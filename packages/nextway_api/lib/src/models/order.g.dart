@@ -8,13 +8,37 @@ part of 'order.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
+OrderLine _$OrderLineFromJson(Map<String, dynamic> json) => $checkedCreate(
+      'OrderLine',
+      json,
+      ($checkedConvert) {
+        final val = OrderLine(
+          id: $checkedConvert('order_id', (v) => v as int),
+          name: $checkedConvert('name', (v) => v as String),
+          quantity:
+              $checkedConvert('product_uom_qty', (v) => (v as num).toDouble()),
+          unitOfMeasure:
+              $checkedConvert('product_uom_name', (v) => v as String),
+          priceSubtotal:
+              $checkedConvert('price_subtotal', (v) => (v as num).toDouble()),
+        );
+        return val;
+      },
+      fieldKeyMap: const {
+        'id': 'order_id',
+        'quantity': 'product_uom_qty',
+        'unitOfMeasure': 'product_uom_name',
+        'priceSubtotal': 'price_subtotal'
+      },
+    );
+
 DeliveryAddress _$DeliveryAddressFromJson(Map<String, dynamic> json) =>
     $checkedCreate(
       'DeliveryAddress',
       json,
       ($checkedConvert) {
         final val = DeliveryAddress(
-          name: $checkedConvert('name', (v) => v as String),
+          name: $checkedConvert('name', (v) => v as String?),
           displayName: $checkedConvert('display_name', (v) => v as String),
           phone: $checkedConvert('phone', (v) => v as String?),
           mobile: $checkedConvert('mobile', (v) => v as String?),
@@ -65,6 +89,11 @@ Order _$OrderFromJson(Map<String, dynamic> json) => $checkedCreate(
               'expected_date',
               (v) => _$JsonConverterFromJson<String, DateTime>(
                   v, const CustomDateTimeConverter().fromJson)),
+          orderLines: $checkedConvert(
+              'order_lines',
+              (v) => (v as List<dynamic>)
+                  .map((e) => OrderLine.fromJson(e as Map<String, dynamic>))
+                  .toList()),
         );
         return val;
       },
@@ -75,7 +104,8 @@ Order _$OrderFromJson(Map<String, dynamic> json) => $checkedCreate(
         'amountTotal': 'amount_total',
         'scheduledDate': 'scheduled_date',
         'deadlineDate': 'date_deadline',
-        'expectedDate': 'expected_date'
+        'expectedDate': 'expected_date',
+        'orderLines': 'order_lines'
       },
     );
 

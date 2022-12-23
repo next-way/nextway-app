@@ -49,4 +49,6 @@ class Repository {
       grandTotalCount: grandTotalCount,
     );
   }
+
+  OrderRepository get orderApiRepository => _apiRepository;
 }

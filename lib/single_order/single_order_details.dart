@@ -1,11 +1,19 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_flavor/flutter_flavor.dart';
 import 'package:nextway/flutter_flow/flutter_flow_widgets.dart';
+import 'package:nextway/helpers.dart';
+import 'package:nextway/repository.dart';
+import 'package:nextway_api/src/models/order.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher_string.dart';
 
 import '../backend/backend.dart';
 import '../flutter_flow/flutter_flow_google_map.dart';
 import '../flutter_flow/flutter_flow_theme.dart';
 import '../flutter_flow/flutter_flow_util.dart';
+import 'single_order_action.dart';
 
 // This is the type used by the popup menu below.
 enum Menu { itemCall, itemSMS, directWaze }
@@ -22,6 +30,7 @@ class SingleOrderDetailsWidget extends StatefulWidget {
     required this.assigned,
     this.lat,
     this.long,
+    required this.order,
   }) : super(key: key);
 
   final String? displayName;
@@ -33,6 +42,7 @@ class SingleOrderDetailsWidget extends StatefulWidget {
   final dynamic orderItems;
   final double? lat;
   final double? long;
+  final Order order;
 
   @override
   _SingleOrderDetailsWidgetState createState() =>
@@ -44,6 +54,7 @@ class _SingleOrderDetailsWidgetState extends State<SingleOrderDetailsWidget> {
   final googleMapsController = Completer<GoogleMapController>();
   final scaffoldKey = GlobalKey<ScaffoldState>();
   String _selectedMenu = '';
+  Repository repository = Repository(FlavorConfig.instance.variables);
   // Location location = new Location();
   // bool _serviceEnabled = false;
   // PermissionStatus _permissionGranted = PermissionStatus.denied;
@@ -88,6 +99,10 @@ class _SingleOrderDetailsWidgetState extends State<SingleOrderDetailsWidget> {
             floating: false,
             backgroundColor: FlutterFlowTheme.of(context).secondaryBackground,
             automaticallyImplyLeading: false,
+            title: Text(
+              "Order ${widget.order.displayName}",
+              style: FlutterFlowTheme.of(context).bodyText1,
+            ),
             leading: InkWell(
               onTap: () async {
                 Navigator.pop(context);
@@ -98,37 +113,57 @@ class _SingleOrderDetailsWidgetState extends State<SingleOrderDetailsWidget> {
                 size: 24,
               ),
             ),
-            actions: [
-              PopupMenuButton(
-                icon: Icon(Icons.more_vert,
-                    color: FlutterFlowTheme.of(context).secondaryText),
-                // Callback that sets the selected popup menu item.
-                onSelected: (Menu item) {
-                  setState(() {
-                    _selectedMenu = item.name;
-                  });
-                  if (item == Menu.directWaze) {
-                    launchWaze(widget.lat!, widget.long!);
-                  }
-                },
-                itemBuilder: (BuildContext context) => <PopupMenuEntry<Menu>>[
-                  // TODO Show only while order has not been dropped off or unassigned and for acceptance
+            actions: () {
+              List<PopupMenuEntry<Menu>> menuItems = [
+                PopupMenuItem<Menu>(
+                  value: Menu.directWaze,
+                  child: Text('Show directions (Waze)'),
+                  enabled: _shouldShowWaze(),
+                ),
+              ];
+              if (widget.assigned || widget.order.state == 'assigned') {
+                menuItems.addAll([
                   PopupMenuItem<Menu>(
-                    value: Menu.directWaze,
-                    child: Text('Show directions (Waze)'),
-                    enabled: _shouldShowWaze(),
-                  ),
-                  const PopupMenuItem<Menu>(
                     value: Menu.itemCall,
                     child: Text('Call customer'),
+                    enabled: widget.order.contactNumber != null,
                   ),
-                  const PopupMenuItem<Menu>(
+                  PopupMenuItem<Menu>(
                     value: Menu.itemSMS,
                     child: Text('SMS customer'),
+                    enabled: widget.order.deliveryAddress.mobile != null &&
+                        widget.order.deliveryAddress.mobile!.isNotEmpty,
                   ),
-                ],
-              ),
-            ],
+                ]);
+              }
+              return [
+                PopupMenuButton(
+                  icon: Icon(Icons.more_vert,
+                      color: FlutterFlowTheme.of(context).secondaryText),
+                  // Callback that sets the selected popup menu item.
+                  onSelected: (Menu item) {
+                    setState(() {
+                      _selectedMenu = item.name;
+                    });
+                    switch (item) {
+                      case Menu.directWaze:
+                        {
+                          launchWaze(widget.lat!, widget.long!);
+                          break;
+                        }
+                      case Menu.itemCall:
+                        maybeLaunch('tel://${widget.order.contactNumber}');
+                        break;
+                      case Menu.itemSMS:
+                        maybeLaunch(
+                            'sms://${widget.order.deliveryAddress.mobile}');
+                        break;
+                    }
+                  },
+                  itemBuilder: (BuildContext context) => menuItems,
+                ),
+              ];
+            }(),
             centerTitle: false,
             elevation: 0,
           )
@@ -216,13 +251,6 @@ class _SingleOrderDetailsWidgetState extends State<SingleOrderDetailsWidget> {
                             decoration: BoxDecoration(
                               color: FlutterFlowTheme.of(context)
                                   .secondaryBackground,
-                              // boxShadow: [
-                              //   BoxShadow(
-                              //     blurRadius: 5,
-                              //     color: Color(0x230E151B),
-                              //     offset: Offset(0, 2),
-                              //   )
-                              // ],
                             ),
                             child: Column(
                               mainAxisSize: MainAxisSize.max,
@@ -345,11 +373,12 @@ class _SingleOrderDetailsWidgetState extends State<SingleOrderDetailsWidget> {
                         ],
                       ),
                       // Order details
-                      OrderDetails(),
+                      OrderDetails(order: widget.order),
                       // Action based on status
                       widget.assigned
-                          ? OrderActionDropOff()
-                          : OrderActionUnassigned(),
+                          ? OrderActionDropOff(order: widget.order)
+                          : OrderActionUnassigned(
+                              order: widget.order, repository: repository),
                     ],
                   ),
                 ],
@@ -376,12 +405,23 @@ class _SingleOrderDetailsWidgetState extends State<SingleOrderDetailsWidget> {
   _shouldShowWaze() {
     return widget.lat != null && widget.long != null;
   }
+
+  void maybeLaunch(String s) async {
+    if (await canLaunchUrlString(s)) {
+      await launchURL(s);
+    } else {
+      log("Cannot launch ${s.split('://')[0]}. Make sure permissions and intents are set.");
+    }
+  }
 }
 
 class OrderDetails extends StatelessWidget {
   const OrderDetails({
     Key? key,
+    required this.order,
   }) : super(key: key);
+
+  final Order order;
 
   @override
   Widget build(BuildContext context) {
@@ -419,76 +459,30 @@ class OrderDetails extends StatelessWidget {
               ),
               Padding(
                 padding: EdgeInsetsDirectional.fromSTEB(24, 4, 16, 16),
-                child: ListView(
+                child: ListView.builder(
                   padding: EdgeInsets.zero,
                   shrinkWrap: true,
                   scrollDirection: Axis.vertical,
-                  children: [
-                    Row(
+                  itemCount: order.orderLines.length,
+                  itemBuilder: (BuildContext bldContext, int index) {
+                    OrderLine line = order.orderLines[index];
+                    return Row(
                       mainAxisSize: MainAxisSize.max,
                       children: [
                         Text(
-                          '2 packs',
+                          "${line.quantityVerbose} ${line.unitOfMeasureVerbose}",
                           style: FlutterFlowTheme.of(context).bodyText1,
                         ),
                         Padding(
                           padding: EdgeInsetsDirectional.fromSTEB(8, 0, 0, 0),
                           child: Text(
-                            'Nata de Coco',
+                            line.name,
                             style: FlutterFlowTheme.of(context).bodyText1,
                           ),
                         ),
                       ],
-                    ),
-                    Row(
-                      mainAxisSize: MainAxisSize.max,
-                      children: [
-                        Text(
-                          '2 packs',
-                          style: FlutterFlowTheme.of(context).bodyText1,
-                        ),
-                        Padding(
-                          padding: EdgeInsetsDirectional.fromSTEB(8, 0, 0, 0),
-                          child: Text(
-                            'Nata de Coco',
-                            style: FlutterFlowTheme.of(context).bodyText1,
-                          ),
-                        ),
-                      ],
-                    ),
-                    Row(
-                      mainAxisSize: MainAxisSize.max,
-                      children: [
-                        Text(
-                          '2 packs',
-                          style: FlutterFlowTheme.of(context).bodyText1,
-                        ),
-                        Padding(
-                          padding: EdgeInsetsDirectional.fromSTEB(8, 0, 0, 0),
-                          child: Text(
-                            'Nata de Coco',
-                            style: FlutterFlowTheme.of(context).bodyText1,
-                          ),
-                        ),
-                      ],
-                    ),
-                    Row(
-                      mainAxisSize: MainAxisSize.max,
-                      children: [
-                        Text(
-                          '2 packs',
-                          style: FlutterFlowTheme.of(context).bodyText1,
-                        ),
-                        Padding(
-                          padding: EdgeInsetsDirectional.fromSTEB(8, 0, 0, 0),
-                          child: Text(
-                            'Nata de Coco',
-                            style: FlutterFlowTheme.of(context).bodyText1,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
+                    );
+                  },
                 ),
               ),
             ],
@@ -500,10 +494,22 @@ class OrderDetails extends StatelessWidget {
 }
 
 /// Action when the order is unassigned
-class OrderActionUnassigned extends StatelessWidget {
+class OrderActionUnassigned extends StatefulWidget {
   const OrderActionUnassigned({
     Key? key,
+    required this.order,
+    required this.repository,
   }) : super(key: key);
+
+  final Order order;
+  final Repository repository;
+
+  @override
+  State<OrderActionUnassigned> createState() => _OrderActionUnassignedState();
+}
+
+class _OrderActionUnassignedState extends State<OrderActionUnassigned> {
+  bool acceptRequestOnProgress = false;
 
   @override
   Widget build(BuildContext context) {
@@ -528,9 +534,11 @@ class OrderActionUnassigned extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
                     FFButtonWidget(
-                      onPressed: () {
-                        print('Button pressed ...');
-                      },
+                      onPressed: acceptRequestOnProgress
+                          ? () {}
+                          : () {
+                              Navigator.pop(context);
+                            },
                       text: 'Ignore',
                       options: FFButtonOptions(
                         width: 130,
@@ -550,8 +558,62 @@ class OrderActionUnassigned extends StatelessWidget {
                       ),
                     ),
                     FFButtonWidget(
-                      onPressed: () {
-                        print('Button pressed ...');
+                      onPressed: () async {
+                        setState(() {
+                          acceptRequestOnProgress = true;
+                        });
+                        // Request for assignment with delay of 5 seconds
+                        const snackbarFailed = SnackBar(
+                            content: Text("Order job cannot be assigned"));
+                        const snackbarAwaiting = SnackBar(
+                            content: Text("Please wait..."),
+                            duration: const Duration(seconds: 1));
+                        const snackbarAssignSuccess = SnackBar(
+                          content: Text("Order job is now assigned"),
+                          duration: const Duration(seconds: 1),
+                        );
+                        var snackbarController;
+                        snackbarController = ScaffoldMessenger.of(context)
+                            .showSnackBar(snackbarAwaiting);
+                        await Future.delayed(const Duration(seconds: 5),
+                            () async {
+                          bool acceptRequestSuccess = await widget
+                              .repository.orderApiRepository
+                              .acceptJobOrder(widget.order.id);
+                          setState(() {
+                            acceptRequestOnProgress = false;
+                          });
+                          if (!acceptRequestSuccess) {
+                            snackbarController = ScaffoldMessenger.of(context)
+                                .showSnackBar(snackbarFailed);
+                            await snackbarController.closed;
+                          } else {
+                            snackbarController = ScaffoldMessenger.of(context)
+                                .showSnackBar(snackbarAssignSuccess);
+                            await snackbarController.closed;
+                            // Set new navigation to assigned
+                            await Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => SingleOrderDetailsWidget(
+                                  displayName: widget.order.displayName,
+                                  customerName:
+                                      widget.order.deliveryAddress.name,
+                                  companyName:
+                                      widget.order.deliveryAddress.companyName,
+                                  totalAmount: widget.order.amountInPesos,
+                                  address: getAddress(widget.order),
+                                  assigned: true, // Force true as assigned
+                                  lat: widget
+                                      .order.deliveryAddress.partnerLatitude,
+                                  long: widget
+                                      .order.deliveryAddress.partnerLongitude,
+                                  order: widget.order,
+                                ),
+                              ),
+                            );
+                          }
+                        });
                       },
                       text: 'Accept',
                       options: FFButtonOptions(
@@ -585,7 +647,10 @@ class OrderActionUnassigned extends StatelessWidget {
 class OrderActionDropOff extends StatelessWidget {
   const OrderActionDropOff({
     Key? key,
+    required this.order,
   }) : super(key: key);
+
+  final Order order;
 
   @override
   Widget build(BuildContext context) {
@@ -610,8 +675,16 @@ class OrderActionDropOff extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
                     FFButtonWidget(
-                      onPressed: () {
-                        print('Button pressed ...');
+                      onPressed: () async {
+                        await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => SingleOrderActionWidget(
+                              order: order,
+                              intent: ActionIntent.confirmCancellation,
+                            ),
+                          ),
+                        );
                       },
                       text: 'Cancel Job',
                       options: FFButtonOptions(
@@ -632,8 +705,18 @@ class OrderActionDropOff extends StatelessWidget {
                       ),
                     ),
                     FFButtonWidget(
-                      onPressed: () {
-                        print('Button pressed ...');
+                      onPressed: () async {
+                        DateTime dropOffDT = DateTime.now();
+                        await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => SingleOrderActionWidget(
+                              order: order,
+                              intent: ActionIntent.collectPayment,
+                              dropOffDT: dropOffDT,
+                            ),
+                          ),
+                        );
                       },
                       text: 'Drop Off',
                       options: FFButtonOptions(

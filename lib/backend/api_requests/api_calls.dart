@@ -23,7 +23,7 @@ class AuthLoginByEmailCall {
       params: {
         'username': username,
         'password': password,
-        'scope': 'me_profile orders:list',
+        'scope': 'me_profile orders:list orders:post',
       },
       bodyType: BodyType.X_WWW_FORM_URL_ENCODED,
       returnBody: true,

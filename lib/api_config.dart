@@ -26,8 +26,7 @@ Future<Map> getApiConfig() async {
 }
 
 /// Favor FlavorSettings over getApiConfig
-// const String localApiHost = "192.168.55.181:8082";
-const String localApiHost = "172.20.10.6:8082";
+const String localApiHost = "192.168.55.181:8082";
 const String stagingHost = "api-stage42.next-way.org";
 
 class FlavorSettings {

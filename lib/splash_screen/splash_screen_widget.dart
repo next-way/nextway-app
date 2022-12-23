@@ -138,7 +138,7 @@ class _SplashScreenWidgetState extends State<SplashScreenWidget>
                           textAlign: TextAlign.center,
                           style: FlutterFlowTheme.of(context).title3.override(
                                 fontFamily: 'Outfit',
-                                color: FlutterFlowTheme.of(context).primaryText,
+                                color: FlutterFlowTheme.of(context).white,
                               ),
                         ),
                       ],
@@ -163,7 +163,7 @@ class _SplashScreenWidgetState extends State<SplashScreenWidget>
                                   EdgeInsetsDirectional.fromSTEB(0, 2, 0, 20),
                               child: FFButtonWidget(
                                 onPressed: () async {
-                                  await Navigator.push(
+                                  await Navigator.pushReplacement(
                                     context,
                                     MaterialPageRoute(
                                       builder: (context) => LoginWidget(),
@@ -199,6 +199,11 @@ class _SplashScreenWidgetState extends State<SplashScreenWidget>
                     ),
                   ],
                 ),
+              ),
+              Text(
+                'App Version v0.1\nDeveloped with ❤️ by aldnav',
+                textAlign: TextAlign.center,
+                style: FlutterFlowTheme.of(context).bodyText2,
               ),
             ],
           ),

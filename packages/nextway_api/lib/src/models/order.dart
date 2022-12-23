@@ -5,9 +5,53 @@ import 'package:nextway_api/src/helpers/custom_datetime.dart';
 part 'order.g.dart';
 
 @JsonSerializable()
+class OrderLine {
+  const OrderLine({
+    required this.id,
+    required this.name,
+    required this.quantity,
+    required this.unitOfMeasure,
+    required this.priceSubtotal,
+  });
+
+  factory OrderLine.fromJson(Map<String, dynamic> json) =>
+      _$OrderLineFromJson(json);
+
+  @JsonKey(name: 'order_id')
+  final int id;
+  final String name;
+  @JsonKey(name: 'product_uom_qty')
+  final double quantity;
+  @JsonKey(name: 'product_uom_name')
+  final String unitOfMeasure;
+  @JsonKey(name: 'price_subtotal')
+  final double priceSubtotal;
+
+  String get quantityVerbose {
+    return quantity.truncate().toString();
+  }
+
+  String get unitOfMeasureVerbose {
+    if (unitOfMeasure.toLowerCase() == 'units') {
+      return 'pcs';
+    }
+    return unitOfMeasure.toLowerCase();
+  }
+
+  String get priceSubtotalVerbose {
+    var currencyFormat = NumberFormat.currency(
+      locale: 'en_PH',
+      symbol: '',
+      decimalDigits: 2,
+    );
+    return currencyFormat.format(priceSubtotal);
+  }
+}
+
+@JsonSerializable()
 class DeliveryAddress {
   const DeliveryAddress({
-    required this.name,
+    this.name,
     required this.displayName,
     this.phone,
     this.mobile,
@@ -24,7 +68,7 @@ class DeliveryAddress {
   factory DeliveryAddress.fromJson(Map<String, dynamic> json) =>
       _$DeliveryAddressFromJson(json);
 
-  final String name;
+  final String? name;
   @JsonKey(name: 'display_name')
   final String displayName;
   final String? phone;
@@ -55,6 +99,7 @@ class Order {
     required this.scheduledDate,
     required this.deadlineDate,
     required this.expectedDate,
+    required this.orderLines,
   });
 
   factory Order.fromJson(Map<String, dynamic> json) => _$OrderFromJson(json);
@@ -74,6 +119,8 @@ class Order {
   final DateTime? deadlineDate;
   @JsonKey(name: 'expected_date')
   final DateTime? expectedDate;
+  @JsonKey(name: 'order_lines')
+  final List<OrderLine> orderLines;
 
   DateTime? get schedule {
     if (expectedDate != null) {
@@ -103,6 +150,14 @@ class Order {
       decimalDigits: 2,
     );
     return currencyFormat.format(amountTotal);
+  }
+
+  String? get contactNumber {
+    if (deliveryAddress.phone != null) {
+      return deliveryAddress.phone;
+    } else if (deliveryAddress.mobile != null) {
+      return deliveryAddress.mobile;
+    }
   }
 }
 

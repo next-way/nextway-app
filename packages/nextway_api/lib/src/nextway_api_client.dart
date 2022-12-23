@@ -94,4 +94,121 @@ class NextwayApiClient {
 
     yield* Stream.value(orderResponse);
   }
+
+  Future<bool> cancelJobOrder(int orderId, String? message) async {
+    String messageSubject =
+        'Cancellation invoked on ${DateTime.now().toIso8601String()}';
+    message = "$messageSubject<br/>$message";
+
+    var accessToken = await getAccessToken();
+    String baseUrl = getBaseUrl();
+    final makeRequest =
+        apiConfig["flavorId"] == "development" ? Uri.http : Uri.https;
+    // NOTE Weird that appending slash on this url results to a 307 temporary redirect
+    // However for the list items url above, append slash is necessary so temporary redirect won't happen
+    // ¯\_(ツ)_/¯
+    final request =
+        makeRequest(baseUrl, '/orders/${orderId.toString()}/cancel-job');
+    final response = await _httpClient.post(
+      request,
+      headers: {
+        HttpHeaders.authorizationHeader: 'Bearer $accessToken',
+        "Content-Type": "application/json",
+      },
+      body: jsonEncode({'message': message}),
+    );
+
+    if (response.statusCode == 200) {
+      return true;
+    }
+    return false;
+  }
+
+  Future<bool> acceptJobOrder(int orderId) async {
+    var accessToken = await getAccessToken();
+    String baseUrl = getBaseUrl();
+    final makeRequest =
+        apiConfig["flavorId"] == "development" ? Uri.http : Uri.https;
+    final request =
+        makeRequest(baseUrl, '/orders/${orderId.toString()}/accept');
+    final response = await _httpClient.post(
+      request,
+      headers: {
+        HttpHeaders.authorizationHeader: 'Bearer $accessToken',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      return true;
+    }
+    return false;
+  }
+
+  Future<bool> dropOffOrder(int orderId, DateTime dropOffDT,
+      DateTime collectionDT, String? message) async {
+    var accessToken = await getAccessToken();
+    String baseUrl = getBaseUrl();
+    final makeRequest =
+        apiConfig["flavorId"] == "development" ? Uri.http : Uri.https;
+    final request =
+        makeRequest(baseUrl, '/orders/${orderId.toString()}/drop-off');
+    final response = await _httpClient.post(
+      request,
+      headers: {
+        HttpHeaders.authorizationHeader: 'Bearer $accessToken',
+        "Content-Type": "application/json",
+      },
+      body: jsonEncode({
+        'drop_off_datetime': dropOffDT.toIso8601String(),
+        'collection_datetime': collectionDT.toIso8601String(),
+        'message': message,
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      return true;
+    }
+    return false;
+  }
+
+  Future<Profile?> getProfile() async {
+    /// TODO Cache?
+    var accessToken = await getAccessToken();
+    String baseUrl = getBaseUrl();
+    final makeRequest =
+        apiConfig["flavorId"] == "development" ? Uri.http : Uri.https;
+    final request = makeRequest(baseUrl, '/users/me/');
+    final response = await _httpClient.get(
+      request,
+      headers: {
+        HttpHeaders.authorizationHeader: 'Bearer $accessToken',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      return Profile.fromJson(jsonDecode(response.body));
+    }
+    return null;
+  }
+
+  Future<Statistics?> getStatistics() async {
+    /// TODO Cache?
+    var accessToken = await getAccessToken();
+    String baseUrl = getBaseUrl();
+    final makeRequest =
+        apiConfig["flavorId"] == "development" ? Uri.http : Uri.https;
+    final request = makeRequest(baseUrl, '/users/stats/');
+    final response = await _httpClient.get(
+      request,
+      headers: {
+        HttpHeaders.authorizationHeader: 'Bearer $accessToken',
+        'Cache-Control': 'max-age=180', // 3 minutes
+      },
+    );
+
+    if (response.statusCode == 200) {
+      return Statistics.fromJson(jsonDecode(response.body));
+    }
+    return null;
+  }
 }

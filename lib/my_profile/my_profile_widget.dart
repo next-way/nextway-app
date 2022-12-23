@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_flavor/flutter_flavor.dart';
+import 'package:nextway/index.dart';
+import 'package:nextway/repository.dart';
+import 'package:order_repository/order_repository.dart';
 import 'package:provider/provider.dart';
 
-import '../change_password/change_password_widget.dart';
-import '../edit_profile/edit_profile_widget.dart';
 import '../flutter_flow/flutter_flow_animations.dart';
 import '../flutter_flow/flutter_flow_theme.dart';
 import '../flutter_flow/flutter_flow_util.dart';
@@ -50,6 +52,9 @@ class _MyProfileWidgetState extends State<MyProfileWidget>
       ],
     ),
   };
+  Repository repository = Repository(FlavorConfig.instance.variables);
+  Profile? profile;
+  Statistics? statistics;
 
   @override
   void initState() {
@@ -60,6 +65,26 @@ class _MyProfileWidgetState extends State<MyProfileWidget>
           !anim.applyInitialState),
       this,
     );
+    setupProfileAndStats();
+  }
+
+  void setupProfileAndStats() async {
+    repository.orderApiRepository.getProfile().then((Profile? _profile) {
+      if (_profile != null) {
+        setState(() {
+          profile = _profile;
+        });
+      }
+    });
+    repository.orderApiRepository
+        .getStatistics()
+        .then((Statistics? _statistics) {
+      if (_statistics != null) {
+        setState(() {
+          statistics = _statistics;
+        });
+      }
+    });
   }
 
   @override
@@ -73,7 +98,7 @@ class _MyProfileWidgetState extends State<MyProfileWidget>
         backgroundColor: FlutterFlowTheme.of(context).primaryColor,
         automaticallyImplyLeading: false,
         title: Text(
-          'Welcome',
+          'Profile',
           style: FlutterFlowTheme.of(context).title1.override(
                 fontFamily: 'Outfit',
                 color: FlutterFlowTheme.of(context).white,
@@ -111,7 +136,7 @@ class _MyProfileWidgetState extends State<MyProfileWidget>
                             padding:
                                 EdgeInsetsDirectional.fromSTEB(16, 0, 0, 0),
                             child: Text(
-                              '[userName]',
+                              profile?.username ?? '[username]',
                               style: FlutterFlowTheme.of(context)
                                   .subtitle1
                                   .override(
@@ -150,95 +175,181 @@ class _MyProfileWidgetState extends State<MyProfileWidget>
                           ),
                           Padding(
                             padding:
-                                EdgeInsetsDirectional.fromSTEB(0, 16, 0, 0),
-                            child: InkWell(
-                              onTap: () async {
-                                await Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => EditProfileWidget(),
-                                  ),
-                                );
-                              },
-                              child: Row(
-                                mainAxisSize: MainAxisSize.max,
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Expanded(
-                                    child: Padding(
-                                      padding: EdgeInsetsDirectional.fromSTEB(
-                                          16, 20, 0, 20),
-                                      child: Text(
-                                        'Edit Profile',
-                                        style: FlutterFlowTheme.of(context)
-                                            .bodyText1,
-                                      ),
-                                    ),
-                                  ),
-                                  Padding(
-                                    padding: EdgeInsetsDirectional.fromSTEB(
-                                        0, 0, 12, 0),
-                                    child: Icon(
-                                      Icons.arrow_forward_ios,
-                                      color: FlutterFlowTheme.of(context)
-                                          .secondaryText,
-                                      size: 24,
-                                    ),
-                                  ),
-                                ],
-                              ),
+                                EdgeInsetsDirectional.fromSTEB(16, 16, 0, 0),
+                            child: Text('Name: ${profile?.fullName ?? "name"}'),
+                          ),
+                          // Statistics
+                          Padding(
+                            padding:
+                                EdgeInsetsDirectional.fromSTEB(16, 12, 0, 0),
+                            child: Text(
+                              'Statistics',
+                              style: FlutterFlowTheme.of(context).bodyText2,
                             ),
                           ),
-                          Divider(
-                            height: 2,
-                            thickness: 1,
-                            indent: 0,
-                            endIndent: 0,
-                            color: FlutterFlowTheme.of(context).lineColor,
-                          ),
-                          InkWell(
-                            onTap: () async {
-                              await Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => ChangePasswordWidget(),
-                                ),
-                              );
-                            },
-                            child: Row(
-                              mainAxisSize: MainAxisSize.max,
-                              mainAxisAlignment: MainAxisAlignment.center,
+                          Padding(
+                            padding:
+                                EdgeInsetsDirectional.fromSTEB(16, 16, 16, 0),
+                            child: Column(
                               children: [
-                                Expanded(
-                                  child: Padding(
-                                    padding: EdgeInsetsDirectional.fromSTEB(
-                                        16, 20, 0, 20),
-                                    child: Text(
-                                      'Change Password',
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                        "Orders completed for the period ${statistics?.orders.period ?? '-'}"),
+                                    Text(
+                                      '${statistics?.orders.completedInMonth ?? "-"}',
                                       style: FlutterFlowTheme.of(context)
-                                          .bodyText1,
-                                    ),
-                                  ),
+                                          .bodyText1
+                                          .override(
+                                            fontFamily: 'Outfit',
+                                            color: FlutterFlowTheme.of(context)
+                                                .primaryColor,
+                                          ),
+                                    )
+                                  ],
                                 ),
-                                Padding(
-                                  padding: EdgeInsetsDirectional.fromSTEB(
-                                      0, 0, 12, 0),
-                                  child: Icon(
-                                    Icons.arrow_forward_ios,
-                                    color: FlutterFlowTheme.of(context)
-                                        .secondaryText,
-                                    size: 24,
-                                  ),
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text("Orders completed overall"),
+                                    Text(
+                                      '${statistics?.orders.completed ?? "-"}',
+                                      style: FlutterFlowTheme.of(context)
+                                          .bodyText1
+                                          .override(
+                                            fontFamily: 'Outfit',
+                                            color: FlutterFlowTheme.of(context)
+                                                .primaryColor,
+                                          ),
+                                    )
+                                  ],
+                                ),
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text("Orders assigned overall"),
+                                    Text(
+                                      '${statistics?.orders.assigned ?? "-"}',
+                                      style: FlutterFlowTheme.of(context)
+                                          .bodyText1
+                                          .override(
+                                            fontFamily: 'Outfit',
+                                            color: FlutterFlowTheme.of(context)
+                                                .primaryColor,
+                                          ),
+                                    )
+                                  ],
                                 ),
                               ],
                             ),
                           ),
-                          Divider(
-                            height: 2,
-                            thickness: 1,
-                            indent: 0,
-                            endIndent: 0,
-                            color: FlutterFlowTheme.of(context).lineColor,
+
+                          /// TODO Implement update profile
+                          // Padding(
+                          //   padding:
+                          //       EdgeInsetsDirectional.fromSTEB(0, 16, 0, 0),
+                          //   child: InkWell(
+                          //     onTap: () async {
+                          //       await Navigator.push(
+                          //         context,
+                          //         MaterialPageRoute(
+                          //           builder: (context) => EditProfileWidget(),
+                          //         ),
+                          //       );
+                          //     },
+                          //     // child: Row(
+                          //     //   mainAxisSize: MainAxisSize.max,
+                          //     //   mainAxisAlignment: MainAxisAlignment.center,
+                          //     //   children: [
+                          //     //     Expanded(
+                          //     //       child: Padding(
+                          //     //         padding: EdgeInsetsDirectional.fromSTEB(
+                          //     //             16, 20, 0, 20),
+                          //     //         child: Text(
+                          //     //           'Edit Profile',
+                          //     //           style: FlutterFlowTheme.of(context)
+                          //     //               .bodyText1,
+                          //     //         ),
+                          //     //       ),
+                          //     //     ),
+                          //     //     Padding(
+                          //     //       padding: EdgeInsetsDirectional.fromSTEB(
+                          //     //           0, 0, 12, 0),
+                          //     //       child: Icon(
+                          //     //         Icons.arrow_forward_ios,
+                          //     //         color: FlutterFlowTheme.of(context)
+                          //     //             .secondaryText,
+                          //     //         size: 24,
+                          //     //       ),
+                          //     //     ),
+                          //     //   ],
+                          //     // ),
+                          //   ),
+                          // ),
+                          // Divider(
+                          //   height: 2,
+                          //   thickness: 1,
+                          //   indent: 0,
+                          //   endIndent: 0,
+                          //   color: FlutterFlowTheme.of(context).lineColor,
+                          // ),
+                          // TODO Implement change password
+                          // InkWell(
+                          //   onTap: () async {
+                          //     await Navigator.push(
+                          //       context,
+                          //       MaterialPageRoute(
+                          //         builder: (context) => ChangePasswordWidget(),
+                          //       ),
+                          //     );
+                          //   },
+                          //   child: Row(
+                          //     mainAxisSize: MainAxisSize.max,
+                          //     mainAxisAlignment: MainAxisAlignment.center,
+                          //     children: [
+                          //       Expanded(
+                          //         child: Padding(
+                          //           padding: EdgeInsetsDirectional.fromSTEB(
+                          //               16, 20, 0, 20),
+                          //           child: Text(
+                          //             'Change Password',
+                          //             style: FlutterFlowTheme.of(context)
+                          //                 .bodyText1,
+                          //           ),
+                          //         ),
+                          //       ),
+                          //       Padding(
+                          //         padding: EdgeInsetsDirectional.fromSTEB(
+                          //             0, 0, 12, 0),
+                          //         child: Icon(
+                          //           Icons.arrow_forward_ios,
+                          //           color: FlutterFlowTheme.of(context)
+                          //               .secondaryText,
+                          //           size: 24,
+                          //         ),
+                          //       ),
+                          //     ],
+                          //   ),
+                          // ),
+                          // Divider(
+                          //   height: 2,
+                          //   thickness: 1,
+                          //   indent: 0,
+                          //   endIndent: 0,
+                          //   color: FlutterFlowTheme.of(context).lineColor,
+                          // ),
+                          /// Prefences
+                          Padding(
+                            padding:
+                                EdgeInsetsDirectional.fromSTEB(16, 12, 0, 0),
+                            child: Text(
+                              'Preferences',
+                              style: FlutterFlowTheme.of(context).bodyText2,
+                            ),
                           ),
                           Padding(
                             padding: EdgeInsetsDirectional.fromSTEB(0, 1, 0, 0),
@@ -490,8 +601,14 @@ class _MyProfileWidgetState extends State<MyProfileWidget>
                               padding:
                                   EdgeInsetsDirectional.fromSTEB(0, 0, 0, 16),
                               child: FFButtonWidget(
-                                onPressed: () {
-                                  print('Button pressed ...');
+                                onPressed: () async {
+                                  await Navigator.pushAndRemoveUntil(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) =>
+                                            SplashScreenWidget(),
+                                      ),
+                                      (Route<dynamic> route) => false);
                                 },
                                 text: 'Log Out',
                                 options: FFButtonOptions(
@@ -516,7 +633,7 @@ class _MyProfileWidgetState extends State<MyProfileWidget>
                               ),
                             ),
                             Text(
-                              'App Version v0.1',
+                              'App Version v0.1\nDeveloped with ❤️ by aldnav',
                               textAlign: TextAlign.center,
                               style: FlutterFlowTheme.of(context).bodyText2,
                             ),

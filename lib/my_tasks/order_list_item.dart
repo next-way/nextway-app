@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:nextway/flutter_flow/flutter_flow_theme.dart';
+import 'package:nextway/helpers.dart';
+import 'package:nextway/index.dart';
 import 'package:order_repository/order_repository.dart';
 
 import '../single_order/single_order_details.dart';
@@ -23,21 +25,34 @@ class OrderListItem extends StatelessWidget {
     return Card(
         child: InkWell(
       onTap: () async {
-        await Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => SingleOrderDetailsWidget(
-              displayName: order.displayName,
-              customerName: order.deliveryAddress.name,
-              companyName: order.deliveryAddress.companyName,
-              totalAmount: order.amountInPesos,
-              address: getAddress(order),
-              assigned: isAssigned(order),
-              lat: order.deliveryAddress.partnerLatitude,
-              long: order.deliveryAddress.partnerLongitude,
+        if (order.state.toLowerCase() == 'done') {
+          await Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => SingleOrderActionWidget(
+                order: order,
+                intent: ActionIntent.viewSingleOrder,
+              ),
             ),
-          ),
-        );
+          );
+        } else {
+          await Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => SingleOrderDetailsWidget(
+                displayName: order.displayName,
+                customerName: order.deliveryAddress.name,
+                companyName: order.deliveryAddress.companyName,
+                totalAmount: order.amountInPesos,
+                address: getAddress(order),
+                assigned: isAssigned(order),
+                lat: order.deliveryAddress.partnerLatitude,
+                long: order.deliveryAddress.partnerLongitude,
+                order: order,
+              ),
+            ),
+          );
+        }
       },
       child: Row(
         mainAxisSize: MainAxisSize.max,
@@ -117,20 +132,6 @@ class OrderListItem extends StatelessWidget {
         ],
       ),
     ));
-  }
-
-  String getAddress(Order order) {
-    List<String?> addressDetails = [
-      order.deliveryAddress.street,
-      order.deliveryAddress.street2,
-      order.deliveryAddress.city,
-      order.deliveryAddress.state,
-      order.deliveryAddress.country,
-    ];
-    return addressDetails
-        .where((element) => (element ?? '').isNotEmpty)
-        .toList()
-        .join(', ');
   }
 
   bool isAssigned(Order order) {
